@@ -188,3 +188,54 @@ public function updateProfile(Request $request, $id)
 
     
 }
+
+
+
+using guard login
+// 	Api for mobile app
+
+public function studentLogin(Request $request) 
+{
+    // Validate the request inputs
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',  
+        'password' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => $validator->errors(),
+        ], 400);
+    }
+
+
+    // Attempt login using 'student' guard
+    if (Auth::guard('student')->attempt($request->only('email', 'password'), $request->filled('remember'))) {
+
+        // Generate an API token using Laravel Sanctum
+        $student = Auth::guard('student')->user(); 
+        $token = $student->createToken('student-login-token')->plainTextToken;
+
+        // Define base URL
+        $base_url = 'https://basicdemo.k-hub.ac/uploads/student/';
+
+        // Append base URL to the photo field and return it in the response
+        $student->photo = $base_url . $student->photo;
+
+        // Return response with token, full student data, and base URL
+        return response()->json([
+            'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'student' => $student,
+            'message' => 'Student Logged In Successfully!',
+        ]);
+    }
+
+    // If login fails, return an error response
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid email or password.',
+    ], 401);
+}
