@@ -1,3 +1,5 @@
+laravel mai users table mai ye table ka hona lzmi hay
+table: personal_access_tokens
 <?php
 
 namespace App\Http\Controllers\api;
@@ -49,34 +51,71 @@ class AuthApiController extends Controller
 
 
 // login user
-    public function login(Request $request)
-    {
-        $validator = \Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+    // public function login(Request $request)
+    // {
+    //     $validator = \Validator::make($request->all(), [
+    //         'email'    => 'required|email',
+    //         'password' => 'required',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'errors' => $validator->errors()
+    //         ], 422);
+    //     }
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            // $request->session()->regenerate();
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Login successful',
-            ]);
-        }
+    //     if (Auth::attempt($request->only('email', 'password'))) {
+    //         $user = Auth::user();
+    //     $token = $user->createToken('mobile_app_token')->plainTextToken;
+    //         return response()->json([
+    //             'status'  => 'success',
+    //             'message' => 'Login successful',
+    //             'token'=> $token,
+    //             'user' => $user
+    //         ]);
+    //     }
 
+    //     return response()->json([
+    //         'status' => 'error',
+    //         'errors' => ['email' => ['Invalid credentials.']],
+            
+    //     ], 401);
+    // }
+
+
+public function login(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email'    => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if ($validator->fails()) {
         return response()->json([
             'status' => 'error',
-            'errors' => ['email' => ['Invalid credentials.']]
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid credentials.'
         ], 401);
     }
-    
+
+    $user = Auth::user();
+    $token = $user->createToken('mobile_app_token')->plainTextToken;
+ 
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Login successful',
+        'token'   => $token,
+        'user'    => $user
+    ]);
+}
+
     
     // edir profile
     public function editProfile($id){
